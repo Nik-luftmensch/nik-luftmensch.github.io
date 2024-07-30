@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nikhil Singh - Portfolio</title>
+    <link href="./css/main.css" rel="stylesheet" type="text/css" />
+    <script src="./js/polyfills.js"></script>
+    <script src="./js/main.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        #video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1000;
+            background: black;
+        }
+
+        video {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        z-index: -100;
+        background: black;
+        }
+
+        #content {
+            position: relative;
+            z-index: 1;
+        }
+
+        
+    </style>
+
+<link rel="icon" type="image/png" href="img/favicon.png">
+
+</head>
+
+<body>
+    <video id="video-background" loop muted playsinline>
+        <source src="img/back_video.mp4" type="video/mp4">
+        <!-- Add additional source elements for different video formats if needed -->
+        Your browser does not support the video tag.
+    </video>
+    <!-- <button id="audio-player-button" class="audio-control">
+        <i class="fas fa-volume-mute"></i>
+    </button> -->
+
+    <!-- <audio id="audio" loop>
+        <source src="img/back_audio.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio> -->
+    
+
+    <div id="content">
+        <div id="sidenav">
+            <button id="sidenavBtn">&#9776;</button>
+            
+            <img class="image-rounded" id="profilePic" alt="Nikhil Singh" src="./img/nik.jpg">
+        </div>
+        <div id="container">
+            <!-- New container for terminal prompt -->
+            <div id="terminal-prompt"></div>
+
+            <div id="output"></div>
+            <div id="input-line" class="input-line">
+                <div id="prompt" class="prompt-color"></div>&nbsp;
+                <div id="command">
+                    <input type="text" id="cmdline" autocomplete="false" autocorrect="off" autocapitalize="off" spellcheck="true" autofocus />
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/script.js"></script> </body>
+</body>
+
+</html>
