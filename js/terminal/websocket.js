@@ -1,5 +1,3 @@
-// websocket.js
-
 export function setupWebSocket(terminal) {
     const socket = new WebSocket("wss://nik-terminal-backend.onrender.com");
   
@@ -24,12 +22,17 @@ export function setupWebSocket(terminal) {
         msg = await event.data.text();
       }
   
-      if (terminal.inChatMode) {
-        terminal.output.innerHTML += `<span class="prompt-color2">Nik:</span> ${msg}<br/>`;
-        terminal.unlock();
-      } else {
-        // Alert user to switch to chat
-        terminal.output.innerHTML += `<span class="prompt-color2">Nik is trying to connect. Type 'chat nik' or 'secure_connect nik' to respond.</span><br/>`;
+      try {
+        const parsed = JSON.parse(msg);
+  
+        if (parsed.type === "__typing__" || parsed.type === "__admin_typing__") {
+          terminal.showTypingStatus("Nik is typing...");
+        } else if (parsed.type === "chat" && parsed.message) {
+          terminal.receiveMessage(parsed.message);
+        }
+      } catch (err) {
+        // fallback if msg is just plain string (non-JSON)
+        terminal.receiveMessage(msg);
       }
     };
   

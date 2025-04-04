@@ -1,6 +1,4 @@
-// animation.js
-
-export function playMatrixAnimation(duration = 3000, callback) {
+export function playMatrixAnimation(duration = 6000, callback) {
     const canvas = document.getElementById("matrix-canvas");
     const ctx = canvas.getContext("2d");
   
@@ -12,27 +10,43 @@ export function playMatrixAnimation(duration = 3000, callback) {
     const fontSize = 16;
     const columns = Math.floor(canvas.width / fontSize);
     const drops = Array(columns).fill(1);
+    const speed = 1.00;
   
-    const draw = () => {
+    let animationFrame;
+    const startTime = Date.now();
+  
+    function draw() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
       ctx.fillStyle = "#0F0";
       ctx.font = `${fontSize}px monospace`;
   
-      drops.forEach((y, i) => {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * fontSize, y * fontSize);
-        drops[i] = (y * fontSize > canvas.height && Math.random() > 0.975) ? 0 : y + 1;
-      });
-    };
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars.charAt(Math.floor(Math.random() * chars.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
   
-    const interval = setInterval(draw, 33);
+        ctx.fillText(char, x, y);
   
-    setTimeout(() => {
-      clearInterval(interval);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.style.display = "none";
-      if (callback) callback();
-    }, duration);
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+  
+        drops[i] += speed;
+      }
+  
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= duration) {
+        cancelAnimationFrame(animationFrame);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = "none";
+        if (callback) callback(); 
+      } else {
+        animationFrame = requestAnimationFrame(draw);
+      }
+    }
+  
+    draw();
   }
   

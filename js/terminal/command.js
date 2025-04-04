@@ -1,4 +1,3 @@
-// command.js
 import { configs, files } from "./config.js";
 import { playMatrixAnimation } from "./animation.js";
 
@@ -61,24 +60,18 @@ Accessible cores: ${navigator.hardwareConcurrency}`;
     terminal.type(configs.reboot_message, terminal.reset.bind(terminal));
   },
 
-  secure_connect: (terminal, args) => {
-    if (args[0]?.toLowerCase() === "nik") {
-      terminal.type("Establishing secure connection...\n", () => {
-        playMatrixAnimation(3000, () => {
-          terminal.startChatMode();
-        });
-      });
-    } else {
-      terminal.type("Usage: secure_connect nik", terminal.unlock.bind(terminal));
+  secure_handshake: (terminal, args) => {
+    const name = args[0]?.trim();
+    if (!name) {
+      terminal.type("Usage: secure_handshake <your_name>", terminal.unlock.bind(terminal));
+      return;
     }
-  },
 
-  chat: (terminal, args) => {
-    if (args[0]?.toLowerCase() === "nik") {
-      terminal.startChatMode();
-    } else {
-      terminal.type("Usage: chat nik", terminal.unlock.bind(terminal));
-    }
+    terminal.type(`Establishing secure handshake as '${name}'...`, () => {
+      playMatrixAnimation(4000, () => {
+        terminal.startChatMode(name);
+      });
+    });
   },
 
   sudo: (terminal) => {

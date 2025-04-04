@@ -1,4 +1,3 @@
-// terminal.js
 import { configs, files } from "./config.js";
 import { setupWebSocket } from "./websocket.js";
 import { scrollToBottom, isURL } from "./helper.js";
@@ -10,14 +9,15 @@ export class Terminal {
     this.cmdLine = cmdLine;
     this.output = output;
 
-    // Typing state
     this.typingText = "";
     this.typingIndex = 0;
     this.isTyping = false;
     this.typingTimeout = null;
+    this._typingTimeoutClear = null;
 
     this.completePrompt = `${configs.user}@${configs.host}:~${configs.is_root ? "#" : "$"}`;
     this.inChatMode = false;
+    this.chatAlias = "User";
 
     this.cmdHistory = [];
     this.historyIndex = -1;
@@ -38,43 +38,55 @@ export class Terminal {
         this.socket = setupWebSocket(this);
       });
 
-    // Listen for keyboard input
     this.cmdLine.addEventListener("keydown", (event) => this.handleCommandInput(event));
-
-    // Focus input on body click
     document.body.addEventListener("click", () => this.cmdLine.focus());
+    document.addEventListener("dblclick", () => {
+      this.skipTypingIfNeeded();
+      this.cmdLine.focus();
+    });
 
-    // Allow double-click to skip
-    document.addEventListener("dblclick", () => this.skipTypingIfNeeded());
+    let typingDebounce;
+    this.cmdLine.addEventListener("input", () => {
+      if (this.inChatMode && this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({ type: "__typing__" }));
+      }
+      clearTimeout(typingDebounce);
+      typingDebounce = setTimeout(() => {}, 1500);
+    });
   }
 
-  /**
-   * Immediately finish any current typing. 
-   * The remainder is appended in one go (plus a <br/>).
-   */
+  getCurrentTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, "0");
+    const mins = String(now.getMinutes()).padStart(2, "0");
+    return `[${hours}:${mins}]`;
+  }
+
   skipTypingIfNeeded() {
     if (this.isTyping) {
       clearTimeout(this.typingTimeout);
-
       const remainder = this.typingText.substring(this.typingIndex);
       this.output.innerHTML += remainder.replace(/\n/g, "<br/>") + "<br/>";
-
       this.isTyping = false;
       this.typingText = "";
       this.typingIndex = 0;
+      this.unlock();
       scrollToBottom();
     }
   }
 
-  /**
-   * Type text with a character-by-character animation, or skip if called.
-   * NOTE: This function itself does not unlock – do that in the callback if desired.
-   */
   type(text, callback) {
-    // If something else was typing, skip it so text doesn't get cut.
     this.skipTypingIfNeeded();
 
     if (isURL(text)) window.open(text);
+
+    if (text.includes("<") && text.includes(">")) {
+      this.output.innerHTML += text + "<br/>";
+      this.unlock();
+      if (callback) callback();
+      scrollToBottom();
+      return;
+    }
 
     this.typingText = text;
     this.typingIndex = 0;
@@ -82,19 +94,15 @@ export class Terminal {
 
     const typer = () => {
       if (!this.isTyping) {
-        // If skipTypingIfNeeded() was called mid-typing
         if (callback) callback();
         return;
       }
-
       if (this.typingIndex < this.typingText.length) {
         const char = this.typingText.charAt(this.typingIndex++);
         this.output.innerHTML += (char === "\n") ? "<br/>" : char;
-
         const delay = (char === "\n") ? configs.type_delay * 2 : configs.type_delay;
         this.typingTimeout = setTimeout(typer, delay);
       } else {
-        // Done
         this.isTyping = false;
         this.output.innerHTML += "<br/>";
         if (callback) callback();
@@ -110,9 +118,10 @@ export class Terminal {
   }
 
   unlock() {
-    // Only unlock if not typing
     if (!this.isTyping) {
-      this.prompt.textContent = this.completePrompt;
+      this.prompt.textContent = this.inChatMode
+        ? `${this.chatAlias}:`
+        : this.completePrompt;
       this.cmdLine.disabled = false;
       this.cmdLine.focus();
       scrollToBottom();
@@ -134,20 +143,36 @@ export class Terminal {
     } else if (event.key === "Enter") {
       event.preventDefault();
       if (input) {
-        // 1) Skip current typing so the old text doesn't get cut
         this.skipTypingIfNeeded();
-
-        // 2) Show the new prompt + user input
-        this.output.innerHTML += `<br/><span class="prompt-color">${this.completePrompt}</span> <span class="prompt-color2">${input}</span><br/>`;
-
-        // 3) Push to history
-        this.cmdHistory.push(input);
-        this.historyIndex = this.cmdHistory.length;
-
-        // 4) Execute
-        this.executeCommand(input);
+        this.clearTypingStatus();
+        if (this.inChatMode) {
+          if (input.toLowerCase() === "exit") {
+            this.stopChatMode();
+          } else {
+            this.output.innerHTML += `<span class="prompt-color2">${this.getCurrentTime()} ${this.chatAlias}:</span> ${input}<br/>`;
+            if (this.socket && this.socket.send) {
+              this.socket.send(JSON.stringify({
+                type: "chat",
+                name: this.chatAlias || "User",
+                message: input,
+                ip: this.guestIPAddress,
+                city: this.guestLocation
+              }));
+            }
+          }
+        } else {
+          this.type(
+            `<span class="prompt-color">${this.completePrompt}</span> <span class="prompt-color2">${input}</span><br/>`,
+            () => {
+              this.cmdHistory.push(input);
+              this.historyIndex = this.cmdHistory.length;
+              this.executeCommand(input);
+            }
+          );
+        }
       }
       this.cmdLine.value = "";
+      scrollToBottom();
     }
   }
 
@@ -183,7 +208,7 @@ export class Terminal {
     }
 
     if (matches.length === 1) {
-      this.cmdLine.value = (parts.length === 1) ? matches[0] : `${cmd} ${matches[0]}`;
+      this.cmdLine.value = parts.length === 1 ? matches[0] : `${cmd} ${matches[0]}`;
     } else if (matches.length > 1) {
       this.type(matches.join("\n"), () => this.unlock());
     }
@@ -192,7 +217,6 @@ export class Terminal {
   executeCommand(input) {
     this.lock();
     const [command, ...args] = input.split(" ");
-
     if (commands[command]) {
       commands[command](this, args);
     } else {
@@ -201,21 +225,80 @@ export class Terminal {
   }
 
   receiveMessage(message) {
-    if (this.inChatMode) {
-      this.output.innerHTML += `<span class="prompt-color2">Nik:</span> ${message}<br/>`;
-      scrollToBottom();
+    this.clearTypingStatus();
+
+    if (message === "__admin_typing__" || message === "__typing__") {
+      if (!this.inChatMode) {
+        this.skipTypingIfNeeded();
+        this.startChatMode("User", false);
+      }
+      this.showTypingStatus("Nik is typing...");
+      return;
     }
+
+    if (!this.inChatMode) {
+      this.skipTypingIfNeeded();
+      this.startChatMode("User", true);
+    }
+
+    const time = this.getCurrentTime();
+    this.output.innerHTML += `<span class="prompt-color2">${time} Nik:</span> ${message}<br/>`;
+    scrollToBottom();
+    this.unlock();
   }
 
-  startChatMode() {
+  startChatMode(alias = "User", suppressConnectionMsg = false) {
+    this.skipTypingIfNeeded();
     this.inChatMode = true;
-    this.output.innerHTML += "<span class='prompt-color2'>Secure chat connected. Type 'exit' to disconnect.</span><br/>";
+    this.chatAlias = alias;
+
+    if (!suppressConnectionMsg) {
+      this.output.innerHTML += `<span class='prompt-color2'>Secure chat connected as <b>${alias}</b>.</span><br/>`;
+      this.output.innerHTML += `<span class='prompt-color3'>Type 'exit' to return to normal mode.</span><br/>`;
+    }
+
+    this.prompt.textContent = `${this.chatAlias}:`;
+    this.cmdLine.disabled = false;
+    this.cmdLine.focus();
     scrollToBottom();
   }
 
   stopChatMode() {
     this.inChatMode = false;
     this.output.innerHTML += "<span class='prompt-color2'>Chat disconnected.</span><br/>";
-    this.unlock();
+    this.prompt.textContent = this.completePrompt;
+    this.cmdLine.disabled = false;
+    this.cmdLine.focus();
+  }
+
+  showTypingStatus(text) {
+    this.clearTypingStatus();
+
+    const wrapper = document.createElement("div");
+    wrapper.id = "typing-indicator-wrapper";
+
+    const indicator = document.createElement("span");
+    indicator.id = "typing-indicator";
+    indicator.className = "prompt-color3";
+    indicator.textContent = text;
+
+    wrapper.appendChild(indicator);
+    this.output.appendChild(wrapper);
+
+    scrollToBottom();
+
+    this._typingTimeoutClear = setTimeout(() => {
+      this.clearTypingStatus();
+    }, 3000);
+  }
+
+  clearTypingStatus() {
+    const wrapper = document.getElementById("typing-indicator-wrapper");
+    if (wrapper) wrapper.remove();
+
+    if (this._typingTimeoutClear) {
+      clearTimeout(this._typingTimeoutClear);
+      this._typingTimeoutClear = null;
+    }
   }
 }
