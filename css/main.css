@@ -1,14 +1,21 @@
+/* === Text selection highlight === */
 ::selection {
     background: #f7d07e;
   }
   
+  /* 
+     Removed overflow: hidden so the page can scroll if needed.
+     If you prefer the terminal to scroll only inside #container,
+     then #container needs a fixed height (see below).
+  */
   html, body {
     width: 100%;
     height: 100%;
     margin: 0;
-    overflow: hidden;
+    /* overflow: hidden;  <-- REMOVED to allow scrolling */
   }
   
+  /* === Base body styles === */
   body {
     font-size: 13pt;
     font-family: monospace;
@@ -16,15 +23,27 @@
     background-color: black;
   }
   
+  /* 
+     The main container for your terminal output and input. 
+     Giving it a height so it can scroll internally if desired.
+     Use 'overflow-y: auto;' to enable vertical scroll within the container.
+  */
   #container {
+    /* Existing spacing */
     padding: 0.1em 1.5em 1em 1em;
     margin-left: 50px;
     margin-right: 135px;
     margin-top: 2%;
-    max-height: 100vh;
+  
+    /* Let #container fill most of the screen, minus top margin. */
+    height: calc(100vh - 3em);
+  
+    /* Enable vertical scroll if contents exceed the container height */
     overflow-y: auto;
+    box-sizing: border-box;
   }
   
+  /* === Command line input === */
   #cmdline {
     outline: none;
     background-color: transparent;
@@ -35,14 +54,17 @@
     color: lawngreen !important;
   }
   
+  /* === Terminal output area === */
   #output {
     clear: both;
     width: 100%;
     color: #cee1ff;
-    overflow-y: auto;
+    /* If you want the output itself to scroll independently,
+       keep overflow here. But typically #container is enough. */
     overflow-x: auto;
   }
   
+  /* Prompt label in front of the input line */
   #prompt {
     white-space: nowrap;
     user-select: none;
@@ -56,15 +78,16 @@
     color: lawngreen;
   }
   
+  /* Used when you have an input line structure with prompt + input */
   .input-line {
     display: flex;
     color: lightgreen;
   }
-  
   .input-line > div:nth-child(2) {
     flex: 1;
   }
   
+  /* === Video background styling === */
   #video-background {
     position: fixed;
     right: 0;
@@ -82,6 +105,7 @@
     z-index: 1;
   }
   
+  /* Matrix canvas overlay */
   #matrix-canvas {
     position: fixed;
     top: 0;
@@ -92,10 +116,8 @@
     display: none;
   }
   
-/* ... previous CSS remains the same ... */
-
-/* === SIDE NAVIGATION === */
-#sidenav {
+  /* === SIDE NAVIGATION === */
+  #sidenav {
     height: 100%;
     width: 50px;
     position: fixed;
@@ -182,11 +204,14 @@
     font-size: 16px;
   }
   
-  /* Hide scrollbar for all elements */
+  /* 
+     If you'd like to show scrollbars, remove the rules below.
+     If you keep them, you can still scroll with mouse wheel or touch,
+     but won't SEE the scrollbar handle.
+  */
   ::-webkit-scrollbar {
     display: none;
   }
-  
   * {
     scrollbar-width: none;
   }
@@ -196,12 +221,10 @@
     #container {
       margin-right: 0;
     }
-  
     #sidenav.open {
       width: 100vw;
       background-color: rgba(0, 0, 0, 1);
     }
-  
     #githubImg img {
       transform: translateX(900px);
     }
@@ -211,11 +234,9 @@
     body {
       font-size: 11pt;
     }
-  
     #sidenav {
       padding-top: 15px;
     }
-  
     #sidenav a {
       font-size: 13px;
     }
