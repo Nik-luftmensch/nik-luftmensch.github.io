@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nikhil Singh - Portfolio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nikhil Singh - Terminal Portfolio</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="img/favicon.png" />
 
   <!-- Styles -->
-  <link rel="icon" type="image/png" href="img/favicon.png">
-  <link href="./css/main.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
-    integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="./css/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" crossorigin="anonymous" />
 
   <style>
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 5000;
+      display: none;
+    }
+
     #video-background {
       position: fixed;
       right: 0;
@@ -49,53 +55,67 @@
 
 <body>
   <!-- Background Video -->
-  <video id="video-background" loop muted playsinline>
-    <source src="img/back_video.mp4" type="video/mp4">
+  <video id="video-background" autoplay loop muted playsinline>
+    <source src="img/back_video.mp4" type="video/mp4" />
     Your browser does not support the video tag.
   </video>
 
-  <!-- Audio Toggle -->
+  <!-- Audio Control -->
+  <audio id="audio" src="img/back_audio.mp3" loop></audio>
   <button id="audio-player-button" class="audio-control">
     <i class="fas fa-volume-mute"></i>
   </button>
 
-  <!-- Background Audio -->
-  <audio id="audio" loop>
-    <source src="img/back_audio.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
+  <!-- Matrix Canvas -->
+  <canvas id="matrix-canvas"></canvas>
 
-  <!-- Main Content -->
+  <!-- Terminal UI -->
   <div id="content">
     <div id="sidenav">
-      <button id="sidenavBtn">&#9776;</button>
-      <img class="image-rounded" id="profilePic" alt="Nikhil Singh" src="./img/nik.jpg">
+      <button id="sidenavBtn"><span class="hamburger-icon">&#9776;</span></button>
+      <img class="image-rounded" id="profilePic" alt="Nikhil Singh" src="./img/nik.jpg" />
     </div>
+
     <div id="container">
       <div id="terminal-prompt"></div>
       <div id="output"></div>
       <div id="input-line" class="input-line">
         <div id="prompt" class="prompt-color"></div>&nbsp;
         <div id="command">
-          <input type="text" id="cmdline" autocomplete="false" autocorrect="off" autocapitalize="off" spellcheck="true"
-            autofocus />
+          <input
+            type="text"
+            id="cmdline"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            autofocus
+          />
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Load EmailJS SDK FIRST -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script>
-  window.addEventListener("load", function () {
-    emailjs.init("vcJ-C6ZjQUne37qPP");
-  });
-</script>
+  <!-- Socket.IO for WebSocket -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
-  <!-- Then load your custom scripts -->
+  <!-- Polyfill for older browsers -->
   <script src="./js/polyfills.js"></script>
-  <script src="./js/main.js"></script>
+
+  <!-- EmailJS SDK for sending emails -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    window.addEventListener("load", function () {
+      if (typeof emailjs !== "undefined") {
+        emailjs.init("vcJ-C6ZjQUne37qPP");
+      }
+    });
+  </script>
+
+  <!-- Main Terminal Logic (ES Module) -->
+  <script type="module" src="./js/main.js"></script>
+
+  <!-- Audio/Video & Other DOM logic -->
   <script src="./js/script.js"></script>
 </body>
-
 </html>
