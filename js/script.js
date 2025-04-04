@@ -58,10 +58,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     location: `${location.city || "?"}, ${location.region || "?"}, ${location.country || "?"}`,
                     platform: navigator.platform,
                     language: navigator.language,
+                    browser_languages: navigator.languages.join(", "),
                     cores: navigator.hardwareConcurrency,
                     device: navigator.userAgent,
-                };
-                emailjs.send("service_xugurjm", "template_s8irjbp", data)
+                    screen_size: screen.width + "x" + screen.height,
+                    window_size: window.innerWidth + "x" + window.innerHeight,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    time: new Date().toString(),
+                    online: navigator.onLine,
+                    touch_support: ('ontouchstart' in window || navigator.maxTouchPoints > 0),
+                    cookie_enabled: navigator.cookieEnabled,
+                    do_not_track: navigator.doNotTrack,
+                    referrer: document.referrer || "None"
+                  };
+                  
+                  emailjs.send("service_xugurjm", "template_s8irjbp", data);                  
             })
             .catch(err => {
                 console.error("❌ Error fetching location from ipinfo.io:", err);
