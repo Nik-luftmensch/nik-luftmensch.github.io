@@ -33,8 +33,9 @@ var main = (function () {
         "Hi, I am Nikhil Singh, a Software Engineer at Electronic Arts Inc.\n" +
         "Please use the 'help' command to see the list of available options and get to know me.\n" +
         "You can try commands like:\n" +
-        "  - cat welcome_message.txt\n" +
         "  - ls\n" +
+        "  - cat welcome_message.txt\n" +
+        "  - cat technologies.txt\n" +
         "  - whoami\n" +
         "Press the TAB key to autocomplete commands or filenames.\n" +
         "Double click/touch anywhere to skip text rolling.\n" +
