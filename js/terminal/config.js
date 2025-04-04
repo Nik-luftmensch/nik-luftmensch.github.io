@@ -25,7 +25,7 @@ export const configs = {
     - ls
     - cat welcome_message.txt
     - cat technologies.txt
-    - secure_connect {name} 
+    - secure_handshake {name} 
     - whoami
   Press the TAB key to autocomplete commands or filenames.
   Double click/touch anywhere to skip text rolling.

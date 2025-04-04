@@ -8,9 +8,10 @@ export function setupWebSocket(terminal) {
         type: "identity",
         location: terminal.guestLocation || "unknown",
         ip: terminal.guestIPAddress || "unknown",
+        name: terminal.chatAlias || "User",  // Send the chat alias here
       };
   
-      socket.send(JSON.stringify(idMsg));
+      socket.send(JSON.stringify(idMsg));  // Send the identity message with alias
     };
   
     socket.onmessage = async (event) => {
@@ -28,7 +29,7 @@ export function setupWebSocket(terminal) {
         if (parsed.type === "__typing__" || parsed.type === "__admin_typing__") {
           terminal.showTypingStatus("Nik is typing...");
         } else if (parsed.type === "chat" && parsed.message) {
-          terminal.receiveMessage(parsed.message);
+          terminal.receiveMessage(parsed.message);  // This will use the updated message with alias
         }
       } catch (err) {
         // fallback if msg is just plain string (non-JSON)
