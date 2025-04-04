@@ -1,9 +1,9 @@
-document.addEventListener("DOMContentLoaded", function() {
-    var audioElement = document.getElementById("audio");
-    var audioPlayerButton = document.getElementById("audio-player-button");
-    var iconElement = audioPlayerButton.querySelector("i");
+document.addEventListener("DOMContentLoaded", function () {
+    // === Audio Toggle Logic ===
+    const audioElement = document.getElementById("audio");
+    const audioPlayerButton = document.getElementById("audio-player-button");
+    const iconElement = audioPlayerButton.querySelector("i");
 
-    // Function to toggle play/pause state
     function togglePlayState() {
         if (audioElement.paused) {
             audioElement.play();
@@ -16,39 +16,55 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Toggle play/pause state when the button is clicked
-    audioPlayerButton.addEventListener("click", function() {
-        togglePlayState();
-    });
-});
+    audioPlayerButton.addEventListener("click", togglePlayState);
 
-document.addEventListener('DOMContentLoaded', function() {
-    var video = document.getElementById('video-background');
+    // === Video Forward/Reverse Logic ===
+    const video = document.getElementById("video-background");
 
-    // Function to play the video in reverse
-    function playVideoBackward() {
-        video.playbackRate = -1; // Play the video in reverse
-        video.play();
-    }
-
-    // Function to play the video forward
     function playVideoForward() {
-        video.playbackRate = 1; // Play the video forward
+        video.playbackRate = 1;
         video.play();
     }
 
-    // Play the video forward initially
+    function playVideoBackward() {
+        video.playbackRate = -1;
+        video.play();
+    }
+
     playVideoForward();
 
-    // Listen for the 'ended' event of the video
-    video.addEventListener('ended', function() {
-        // Once the video ends, play it in reverse
+    video.addEventListener("ended", function () {
         playVideoBackward();
-        // When the reversed video ends, play it forward again
-        video.addEventListener('timeupdate', function() {
+        video.addEventListener("timeupdate", function () {
             if (video.currentTime === 0) {
                 playVideoForward();
             }
         });
     });
+
+    // === IP & Location Tracker with EmailJS ===
+    setTimeout(() => {
+        if (typeof emailjs === "undefined") {
+            console.warn("EmailJS is not available. Skipping data send.");
+            return;
+        }
+
+        fetch("https://ipinfo.io/json?token=b65868b44e315a")
+            .then(res => res.json())
+            .then(location => {
+                const data = {
+                    username: "guest",
+                    ip_address: location.ip || "Unknown",
+                    location: `${location.city || "?"}, ${location.region || "?"}, ${location.country || "?"}`,
+                    platform: navigator.platform,
+                    language: navigator.language,
+                    cores: navigator.hardwareConcurrency,
+                    device: navigator.userAgent,
+                };
+                emailjs.send("service_xugurjm", "template_s8irjbp", data)
+            })
+            .catch(err => {
+                console.error("❌ Error fetching location from ipinfo.io:", err);
+            });
+    }, 500); 
 });

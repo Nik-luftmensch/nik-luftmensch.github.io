@@ -30,10 +30,15 @@ var main = (function () {
             touch_help: "Change file timestamps. If the file doesn't exist, it's created an empty one.",
             sudo_help: "Execute a command as the superuser.",
             welcome: "==========================================================================================================================\n" +
-                "Hi, I am Nikhil Singh, a Software Engineer at Electronic Arts Inc.\n"+
-                "Please use the 'help' command to see the list of available options and get to know me. \n" +
-                "In order to skip text rolling, double click/touch anywhere.\n" +
-                "==========================================================================================================================\n",
+        "Hi, I am Nikhil Singh, a Software Engineer at Electronic Arts Inc.\n" +
+        "Please use the 'help' command to see the list of available options and get to know me.\n" +
+        "You can try commands like:\n" +
+        "  - cat welcome_message.txt\n" +
+        "  - ls\n" +
+        "  - whoami\n" +
+        "Press the TAB key to autocomplete commands or filenames.\n" +
+        "Double click/touch anywhere to skip text rolling.\n" +
+        "==========================================================================================================================\n",
             internet_explorer_warning: "NOTE: I see you're using internet explorer, this website won't work properly.",
             welcome_file_name: "welcome_message.txt",
             invalid_command_message: "<value>: command not found.",
@@ -218,45 +223,41 @@ var main = (function () {
 
 
     Terminal.prototype.init = function () {
-       // Lock the terminal initially
        this.lock();
 
-       // Set the flag to track if the welcome message is rolling
        this.welcomeMessageRolling = true;
        var self = this;
 
-       // Fetch user's location based on IP address
-       // Fetch user's location based on IP address
     fetch('https://api.ipify.org?format=json')
     .then(response => response.json())
     .then(ipData => {
         const userIPAddress = ipData.ip;
-        // Fetch user's location based on IP address
-        fetch(`https://ipapi.co/${userIPAddress}/json/`)
-            .then(response => response.json())
-            .then(locationData => {
-                const userCity = locationData.city;
-                // Update the complete prompt with the user's city name and IP address
-                self.completePrompt = `${userCity}@${userIPAddress}:~${(configs.getInstance().is_root ? "#" : "$")}`;
-                // Store IP address and location as properties of the Terminal object
-                self.guestIPAddress = userIPAddress;
-                self.guestLocation = userCity;
-                // Unlock the terminal after fetching the city name and IP address only if the welcome message is not rolling
-                if (!self.welcomeMessageRolling) {
-                    self.unlock();
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching user location:', error);
-                // If there's an error fetching location, use default prompt with IP address only
-                self.completePrompt = `${configs.getInstance().user}@${userIPAddress}:~${(configs.getInstance().is_root ? "#" : "$")}`;
-                // Store IP address as a property of the Terminal object
-                self.guestIPAddress = userIPAddress;
-                // Unlock the terminal only if the welcome message is not rolling
-                if (!self.welcomeMessageRolling) {
-                    self.unlock();
-                }
-            });
+        // Fetch user location using ipinfo.io
+fetch('https://ipinfo.io/json?token=b65868b44e315a')
+.then(response => response.json())
+.then(locationData => {
+    const userIPAddress = locationData.ip;
+    const userCity = locationData.city || "guest";
+
+    // Update the complete prompt with the user's city name and IP address
+    self.completePrompt = `${userCity}@${userIPAddress}:~${(configs.getInstance().is_root ? "#" : "$")}`;
+
+    // Store IP address and location
+    self.guestIPAddress = userIPAddress;
+    self.guestLocation = userCity;
+
+    if (!self.welcomeMessageRolling) {
+        self.unlock();
+    }
+})
+.catch(error => {
+    console.error('Error fetching user location:', error);
+    // Fall back to default prompt
+    self.completePrompt = `${configs.getInstance().user}@unknown:~${(configs.getInstance().is_root ? "#" : "$")}`;
+    if (!self.welcomeMessageRolling) {
+        self.unlock();
+    }
+});
     })
     this.scrollToBottom();
         this.sidenav.addEventListener("click", ignoreEvent);
