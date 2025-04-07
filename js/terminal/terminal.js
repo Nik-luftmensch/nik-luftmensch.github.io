@@ -226,7 +226,7 @@ export class Terminal {
 
   receiveMessage(message) {
     this.clearTypingStatus();
-
+  
     if (message === "__admin_typing__" || message === "__typing__") {
       if (!this.inChatMode) {
         this.skipTypingIfNeeded();
@@ -235,17 +235,33 @@ export class Terminal {
       this.showTypingStatus("Nik is typing...");
       return;
     }
-
+  
+    if (message === "__ai_typing__") {
+      this.showTypingStatus("AI Nik is typing...");
+      return;
+    }
+  
     if (!this.inChatMode) {
       this.skipTypingIfNeeded();
       this.startChatMode("User", true);
     }
-
+  
     const time = this.getCurrentTime();
-    this.output.innerHTML += `<span class="prompt-color2">${time} Nik:</span> ${message}<br/>`;
+  
+    // Determine speaker based on label
+    let label = "Nik";
+    let content = message;
+  
+    if (message.startsWith("AI Nik:")) {
+      label = "AI Nik";
+      content = message.replace("AI Nik:", "").trim();
+    }
+  
+    this.output.innerHTML += `<span class="prompt-color2">${time} ${label}:</span> ${content}<br/>`;
     scrollToBottom();
     this.unlock();
   }
+  
 
   startChatMode(alias = "User", suppressConnectionMsg = false) {
     this.skipTypingIfNeeded();
