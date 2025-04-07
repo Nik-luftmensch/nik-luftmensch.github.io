@@ -248,13 +248,15 @@ export class Terminal {
   
     const time = this.getCurrentTime();
   
-    // Determine speaker based on label
     let label = "Nik";
     let content = message;
-  
-    if (message.startsWith("AI Nik:")) {
+    
+    if (/^AI Nik:\s*/i.test(message)) {
       label = "AI Nik";
-      content = message.replace("AI Nik:", "").trim();
+      content = message.replace(/^AI Nik:\s*/i, "").trim();
+    } else if (/^Nik:\s*/.test(message)) {
+      label = "Nik";
+      content = message.replace(/^Nik:\s*/, "").trim();
     }
   
     this.output.innerHTML += `<span class="prompt-color2">${time} ${label}:</span> ${content}<br/>`;
