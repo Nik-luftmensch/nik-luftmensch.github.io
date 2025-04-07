@@ -67,7 +67,19 @@ Accessible cores: ${navigator.hardwareConcurrency}`;
       return;
     }
 
+    terminal.chatAlias = name; 
+
     terminal.type(`Establishing secure handshake as '${name}'...`, () => {
+      if (terminal.socket && terminal.socket.readyState === WebSocket.OPEN) {
+        const idMsg = {
+          type: "identity",
+          location: terminal.guestLocation || "unknown",
+          ip: terminal.guestIPAddress || "unknown",
+          name: terminal.chatAlias || "User",
+        };
+        terminal.socket.send(JSON.stringify(idMsg));
+      }
+
       playMatrixAnimation(4000, () => {
         terminal.startChatMode(name);
       });

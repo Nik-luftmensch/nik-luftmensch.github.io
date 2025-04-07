@@ -48,7 +48,7 @@ export class Terminal {
     let typingDebounce;
     this.cmdLine.addEventListener("input", () => {
       if (this.inChatMode && this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({ type: "__typing__" }));
+        this.socket.send(JSON.stringify({ type: "typing" }));
       }
       clearTimeout(typingDebounce);
       typingDebounce = setTimeout(() => {}, 1500);
