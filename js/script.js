@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
             referrer: document.referrer || "None"
           };
   
-          emailjs.send("service_xugurjm", "template_s8irjbp", data);
+          emailjs.send("service_j8m9gg9", "template_20r3d1r", data);
         });
     }, 500);
   
